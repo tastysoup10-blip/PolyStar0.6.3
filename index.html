@@ -91,7 +91,7 @@
   }
 </style>
 
-<button id="poly-resource-launcher" type="button" aria-haspopup="dialog" aria-controls="poly-resource-search">⌕ Resources</button>
+
 <section id="poly-resource-search" hidden role="dialog" aria-modal="true" aria-label="Game resource search">
   <div class="prs-panel">
     <header class="prs-header">
@@ -122,7 +122,7 @@
   const dataNode = document.getElementById("poly-resource-search-data");
   const resources = JSON.parse(dataNode.textContent);
   const overlay = document.getElementById("poly-resource-search");
-  const launcher = document.getElementById("poly-resource-launcher");
+  
   const input = document.getElementById("prs-query");
   const results = document.getElementById("prs-results");
   const status = document.getElementById("prs-status");
@@ -194,7 +194,7 @@
     overlay.hidden = true;
     if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
   }
-  launcher.addEventListener("click", openSearch);
+  
   closeButton.addEventListener("click", closeSearch);
   overlay.addEventListener("click", event => { if (event.target === overlay) closeSearch(); });
   input.addEventListener("input", render);
@@ -203,13 +203,11 @@
     filters.forEach(item => item.setAttribute("aria-pressed", String(item === button)));
     render();
   }));
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !overlay.hidden) closeSearch();
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      if (overlay.hidden) openSearch(); else input.focus();
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !overlay.hidden) {
+        closeSearch();
     }
-  });
+});
   // Allow direct links such as ?resourceSearch=1 to open the panel.
   if (new URLSearchParams(location.search).has("resourceSearch")) openSearch();
 })();
