@@ -316,11 +316,30 @@ document.addEventListener("keydown", event => {
     textarea.dispatchEvent(new Event("input", {bubbles:true}));
     let beforeCount = null;
     try { beforeCount = Object.keys(localStorage).filter(key => key.startsWith("polytrack_v5_prod_track_")).length; } catch {}
-    say("Sending " + unique.length.toLocaleString() + " tracks to PolyTrack. Keep this tab open; duplicate names may ask whether to overwrite.", true);
+    say("Importing " + unique.length.toLocaleString() + " tracks. Existing tracks with matching names will be replaced automatically.", true);
+
+    // PolyTrack's built-in importer asks for confirmation when a custom track
+    // name already exists. Accept those overwrite confirmations for this
+    // import only, then restore the browser's original confirm function.
+    const originalConfirm = window.confirm;
+    let overwritePromptsAccepted = 0;
+    window.confirm = function(message) {
+      const text = String(message || "");
+      if (/track|name|exist|replace|overwrite|duplicate/i.test(text)) {
+        overwritePromptsAccepted++;
+        return true;
+      }
+      return originalConfirm.call(window, message);
+    };
+
     importButton.click();
     const started = Date.now();
-    while (document.querySelector(".track-export-ui") && Date.now() - started < 180000) {
-      await new Promise(resolve => setTimeout(resolve, 250));
+    try {
+      while (document.querySelector(".track-export-ui") && Date.now() - started < 180000) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+    } finally {
+      window.confirm = originalConfirm;
     }
     if (document.querySelector(".track-export-ui")) {
       say("The import is taking longer than expected. Leave PolyTrack open and check the Custom tracks tab.", true);
