@@ -314,6 +314,8 @@ document.addEventListener("keydown", event => {
     if (!textarea || !importButton) throw new Error("Could not find PolyTrack's native import controls.");
     textarea.value = unique.map(item => item.code).join("\n");
     textarea.dispatchEvent(new Event("input", {bubbles:true}));
+    let beforeCount = null;
+    try { beforeCount = Object.keys(localStorage).filter(key => key.startsWith("polytrack_v5_prod_track_")).length; } catch {}
     say("Sending " + unique.length.toLocaleString() + " tracks to PolyTrack. Keep this tab open; duplicate names may ask whether to overwrite.", true);
     importButton.click();
     const started = Date.now();
@@ -324,9 +326,12 @@ document.addEventListener("keydown", event => {
       say("The import is taking longer than expected. Leave PolyTrack open and check the Custom tracks tab.", true);
       return;
     }
-    say("PolyTrack received " + unique.length.toLocaleString() + " track files." +
-      (invalid ? " Skipped " + invalid + " file(s) that were not PolyTrack1/2 tracks." : "") +
-      " Check the Custom tab in Tracks. If a duplicate-name prompt appeared, finish that prompt first.", true);
+    let afterCount = null;
+    try { afterCount = Object.keys(localStorage).filter(key => key.startsWith("polytrack_v5_prod_track_")).length; } catch {}
+    const added = beforeCount !== null && afterCount !== null ? Math.max(0, afterCount - beforeCount) : null;
+    say((added === null ? "Import finished. " : "Import finished: " + added.toLocaleString() + " new custom track(s) saved. ") +
+      (invalid ? "Skipped " + invalid + " non-PolyTrack file(s). " : "") +
+      "Check the Custom tab in Tracks. If you imported over existing names, those tracks were updated.", true);
   }
   picker.addEventListener("change", async () => {
     if (!picker.files?.length) return;
